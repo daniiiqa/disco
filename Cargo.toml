@@ -1,0 +1,19 @@
+[package]
+name = "discada-kit"
+version = "0.1.0"
+edition = "2024"
+description = "Lo que comparten las apps de discada: el look, y dibujar como la terminal"
+license = "MIT"
+
+[features]
+default = []
+# dibujar en pixeles (arre, empalme); las apps de terminal no lo necesitan
+paint = ["dep:cosmic-text", "dep:tiny-skia", "dep:resvg", "dep:zune-jpeg"]
+
+[dependencies]
+ratatui = "0.29"
+serde_json = "1"
+cosmic-text = { version = "0.19.0", optional = true }
+tiny-skia = { version = "0.12.0", optional = true }
+resvg = { version = "0.49.0", default-features = false, optional = true }
+zune-jpeg = { version = "0.5.15", optional = true }
