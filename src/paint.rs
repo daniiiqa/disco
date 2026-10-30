@@ -211,6 +211,12 @@ impl Painter {
                 if !sym.trim().is_empty() {
                     text.push((col as usize, sym.to_string(), fg, cell.modifier.contains(Modifier::BOLD)));
                 }
+                // subrayado: una línea abajo de la celda, del grueso de los recuadros
+                if cell.modifier.contains(Modifier::UNDERLINED)
+                    && let Some(r) = SkRect::from_xywh(x, (y + ch - 2.0 * lt).round(), cw, lt)
+                {
+                    pix.fill_rect(r, &paint(fg), Transform::identity(), None);
+                }
             }
             self.text(pix, &text, ox, y, cw, ch, s);
         }
