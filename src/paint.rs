@@ -465,6 +465,23 @@ pub fn rounded(pix: &mut Pixmap, x: f32, y: f32, w: f32, h: f32, r: f32, c: Colo
     }
 }
 
+/// El contorno de un rectángulo redondeado, de `width` pixeles por dentro de
+/// la orilla (los bordes de empalme); `dash`: punteado con trazos de ese largo.
+#[allow(clippy::too_many_arguments)]
+pub fn stroke_rounded(pix: &mut Pixmap, x: f32, y: f32, w: f32, h: f32, r: f32, width: f32, c: Color, alpha: f32, dash: Option<f32>) {
+    let half = width / 2.0;
+    let (x, y, w, h) = (x + half, y + half, w - width, h - width);
+    if w <= 0.0 || h <= 0.0 {
+        return;
+    }
+    let (Some(path), Some(col)) = (rounded_rect(x, y, w, h, (r - half).max(0.0).min(w / 2.0).min(h / 2.0)), rgba(c, alpha)) else { return };
+    let mut stroke = tiny_skia::Stroke { width, ..Default::default() };
+    if let Some(d) = dash {
+        stroke.dash = tiny_skia::StrokeDash::new(vec![d, d], 0.0);
+    }
+    pix.stroke_path(&path, &paint(col), &stroke, Transform::identity(), None);
+}
+
 fn rounded_rect(x: f32, y: f32, w: f32, h: f32, r: f32) -> Option<tiny_skia::Path> {
     if r <= 0.0 {
         return SkRect::from_xywh(x, y, w, h).map(PathBuilder::from_rect);
