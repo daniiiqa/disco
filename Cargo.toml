@@ -1,8 +1,8 @@
 [package]
-name = "discada-kit"
+name = "disco"
 version = "0.1.0"
 edition = "2024"
-description = "Lo que comparten las apps de discada: el look, y dibujar como la terminal"
+description = "La base del platillo: lo que comparten las apps de discada (el look, y dibujar como la terminal)"
 license = "MIT"
 
 [features]

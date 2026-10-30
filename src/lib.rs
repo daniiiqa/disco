@@ -1,4 +1,4 @@
-//! discada-kit: lo que comparten las apps de discada (rola, vato, arre, taco y
+//! disco: la base del platillo. Lo que comparten las apps de discada (rola, vato, arre, taco y
 //! empalme) para verse como el look del rice.
 //!
 //! - `look`: colores, estilo y fuente del look (siempre)
