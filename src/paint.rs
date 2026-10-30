@@ -131,11 +131,17 @@ fn arms(c: char) -> Option<[u8; 4]> {
 
 impl Painter {
     pub fn new() -> Painter {
+        Painter::sized(None)
+    }
+
+    /// Con la fuente de kitty pero a `px` pixeles (la barra de empalme va más
+    /// chica que la terminal); None: el tamaño de kitty.
+    pub fn sized(px: Option<f32>) -> Painter {
         let mut fonts = FontSystem::new();
         let name = kitty("font_family").unwrap_or_else(|| "monospace".into());
         let (family, weight) = split_family(&fonts, &name);
         let pt: f32 = kitty("font_size").and_then(|v| v.parse().ok()).unwrap_or(11.0);
-        let px = (pt * 96.0 / 72.0).round();
+        let px = px.unwrap_or(pt * 96.0 / 72.0).round();
         // el ancho de la celda: lo que avanza una letra de la fuente
         let mut b = TextBuffer::new(&mut fonts, Metrics::new(px, px));
         let attrs = Attrs::new().family(Family::Name(&family)).weight(Weight(weight));
