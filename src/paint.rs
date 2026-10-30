@@ -16,6 +16,9 @@ pub struct Painter {
     cache: SwashCache,
     family: String,
     weight: u16,
+    /// el peso de la negrita: la cara más gruesa que sigue y que la familia
+    /// sí tenga (sin ella, cosmic-text se va a otra fuente)
+    bold: u16,
     /// tamaño de la letra y de la celda, en pixeles lógicos
     pub px: f32,
     pub cw: f32,
@@ -45,6 +48,19 @@ fn split_family(fonts: &FontSystem, name: &str) -> (String, u16) {
         }
     }
     ("monospace".into(), 400)
+}
+
+/// La cara que sigue de `weight` en `family` (Regular → Bold); si ya es la más
+/// gruesa, la misma, como kitty con `bold_font auto`.
+fn bold_weight(fonts: &FontSystem, family: &str, weight: u16) -> u16 {
+    fonts
+        .db()
+        .faces()
+        .filter(|f| f.families.iter().any(|(n, _)| n.eq_ignore_ascii_case(family)))
+        .map(|f| f.weight.0)
+        .filter(|&w| w > weight)
+        .min()
+        .unwrap_or(weight)
 }
 
 fn rgba(c: Color, alpha: f32) -> Option<Rgba> {
@@ -126,7 +142,8 @@ impl Painter {
         let mut bb = b.borrow_with(&mut fonts);
         bb.set_text("MMMMMMMMMM", &attrs, Shaping::Advanced, None);
         let cw = bb.layout_runs().next().map_or(px * 0.6, |r| r.line_w / 10.0);
-        Painter { fonts, cache: SwashCache::new(), family, weight, px, cw, ch: (px * 1.3).round() }
+        let bold = bold_weight(&fonts, &family, weight);
+        Painter { fonts, cache: SwashCache::new(), family, weight, bold, px, cw, ch: (px * 1.3).round() }
     }
 
     /// Tamaño en pixeles (lógicos) de `cols`×`rows` celdas.
@@ -155,7 +172,16 @@ impl Painter {
         if let Some(path) = rounded_rect(fx, fy, fw, fh, r) {
             pix.fill_path(&path, &paint(base), FillRule::Winding, Transform::identity(), None);
         }
+        self.cells(pix, buf, look, ox, oy, s);
+    }
 
+    /// Las celdas de `buf` (texto, fondos propios de cada celda y lo que se
+    /// dibuja a mano) con su esquina en (ox, oy), sin pintar un fondo general:
+    /// el de la barra lo pone quien llama (islas, barra sólida…).
+    pub fn cells(&mut self, pix: &mut Pixmap, buf: &Buffer, look: &Look, ox: f32, oy: f32, s: f32) {
+        let (cw, ch) = (self.cw * s, self.ch * s);
+        let area = buf.area;
+        let lt = (cw / 9.0).round().max(1.0);
         for row in 0..area.height {
             let y = oy + row as f32 * ch;
             // primero fondos distintos al del aviso y lo que se dibuja a mano
@@ -245,7 +271,7 @@ impl Painter {
         if cells.is_empty() {
             return;
         }
-        let (weight, bold) = (self.weight, (self.weight + 200).min(900));
+        let (weight, bold) = (self.weight, self.bold);
         let mut glyphs = Vec::new();
         {
             let family = self.family.clone();
@@ -415,6 +441,15 @@ impl Painter {
             }
         }
         true
+    }
+}
+
+/// Un rectángulo redondeado relleno del color `c` con opacidad `alpha` (las
+/// islas de empalme, el fondo de su barra).
+#[allow(clippy::too_many_arguments)]
+pub fn rounded(pix: &mut Pixmap, x: f32, y: f32, w: f32, h: f32, r: f32, c: Color, alpha: f32) {
+    if let (Some(path), Some(col)) = (rounded_rect(x, y, w, h, r.min(w / 2.0).min(h / 2.0)), rgba(c, alpha)) {
+        pix.fill_path(&path, &paint(col), FillRule::Winding, Transform::identity(), None);
     }
 }
 
