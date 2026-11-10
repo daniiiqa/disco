@@ -1,6 +1,6 @@
 //! El look de discada, el mismo para rola, vato, arre, taco y empalme: los
 //! colores salen del theme de kitty que tenga puesto el look de Hyprland (la
-//! paleta del look o la de wallust, la escribe LookBuild.py), y el estilo
+//! paleta del look o la de wallust, la escribe lena), y el estilo
 //! (bordes, barras, mayúsculas, cómo se marca lo elegido, iconos o texto) de
 //! `~/.config/<app>/look.json` o, si no hay, del `look.json` de rola, que sale
 //! del look.toml de cada look. De kitty salen también la fuente y la opacidad.
@@ -124,7 +124,7 @@ fn look_file(app: &str) -> PathBuf {
 }
 
 /// El theme que incluye kitty.conf ahora mismo (el último `include` con colores).
-fn kitty_theme() -> PathBuf {
+pub fn kitty_theme() -> PathBuf {
     let dir = config_dir().join("kitty");
     let conf = dir.join("kitty.conf");
     std::fs::read_to_string(&conf)
